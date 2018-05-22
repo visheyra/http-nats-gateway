@@ -37,7 +37,7 @@ func (h handler) forward(w http.ResponseWriter, r *http.Request) {
 
 	//Unpack json
 	store := make(map[string]interface{})
-	if err := json.NewDecoder(r.Body).Decode(&store); err != nil {
+	if err := json.Unmarshal(data, &store); err != nil {
 		logger.Errorw("Can't decode json",
 			"error", err.Error(),
 		)
