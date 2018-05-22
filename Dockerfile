@@ -6,4 +6,8 @@ COPY . /go/src/github.com/visheyra/http-nats-gateway
 
 RUN make -C /go/src/github.com/visheyra/http-nats-gateway
 
-ENTRYPOINT ["/go/bin/hng"]
+FROM gcr.io/distroless/base
+
+COPY --from=build /go/bin/hng /bin/hng
+
+ENTRYPOINT ["/bin/hng"]
