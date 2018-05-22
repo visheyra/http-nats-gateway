@@ -1,12 +1,11 @@
 package nats
 
 import (
-	"encoding/json"
 	"github.com/nats-io/go-nats"
 	"go.uber.org/zap"
 )
 
-func Forward(forwardAddr, user, pass, topic string, data map[string]interface{}) {
+func Forward(forwardAddr, user, pass, topic string, data []byte) {
 
 	//Create logger
 	l, err := zap.NewProduction()
@@ -29,16 +28,7 @@ func Forward(forwardAddr, user, pass, topic string, data map[string]interface{})
 	}
 	defer cnx.Close()
 
-	payload, err := json.Marshal(data)
-	if err != nil {
-		logger.Errorw("Can't pack message",
-			"endpoint", forwardAddr,
-			"error", err.Error(),
-		)
-		return
-	}
-
-	if err := cnx.Publish(topic, payload); err != nil {
+	if err := cnx.Publish(topic, data); err != nil {
 		logger.Errorw("Can't send data to endpoint",
 			"error", err.Error(),
 			"endpoint", forwardAddr,
@@ -48,7 +38,7 @@ func Forward(forwardAddr, user, pass, topic string, data map[string]interface{})
 		logger.Debugw("Successfully sent data",
 			"endpoint", forwardAddr,
 			"topic", topic,
-			"size", len(payload),
+			"size", len(data),
 		)
 	}
 }

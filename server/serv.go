@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/visheyra/http-nats-gateway/nats"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -27,17 +28,21 @@ func (h handler) forward(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	//Test that body is not empty
-	if r.Body == nil {
-		logger.Warnw("Empty body received, not forwarding")
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		logger.Warnw("Bad body received, not forwarding")
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	//Unpack json
-	data := make(map[string]interface{})
-	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+	store := make(map[string]interface{})
+	if err := json.NewDecoder(r.Body).Decode(&store); err != nil {
 		logger.Errorw("Can't decode json",
 			"error", err.Error(),
 		)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	nats.Forward(h.forwardAddr, h.user, h.pass, h.topic, data)
