@@ -53,7 +53,7 @@ func StartServer(listen, forward, user, pass, topic string) {
 	logger := l.Sugar()
 
 	h := handler{
-		forwardAddr: listen,
+		forwardAddr: forward,
 		user:        user,
 		pass:        pass,
 		topic:       topic,
