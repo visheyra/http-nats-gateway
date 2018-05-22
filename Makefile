@@ -3,7 +3,7 @@
 #
 
 VERSION := "0.1.0"
-TARGET := $(GOPATH)/bin/png
+TARGET := $(GOPATH)/bin/hng
 IMAGE_NAME := "visheyra/prometheus-nats-gateway"
 IMAGE_TAG := "latest"
 DOCKER_ARGS := ""
