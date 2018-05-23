@@ -35,17 +35,39 @@ func (h handler) forward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logger.Debugw("Received an existing body",
+		"data", string(data[:]),
+	)
+
+	var storeArray []json.RawMessage
+
 	//Unpack json
-	store := make(map[string]interface{})
-	if err := json.Unmarshal(data, &store); err != nil {
-		logger.Errorw("Can't decode json",
+	if err := json.Unmarshal(data, &storeArray); err != nil {
+
+		logger.Errorw("Can't decode value as array or object",
 			"error", err.Error(),
+			"data", string(data[:]),
 		)
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	}
 
-	nats.Forward(h.forwardAddr, h.user, h.pass, h.topic, data)
+	} else {
+
+		logger.Infow("found array item",
+			"length", len(storeArray),
+		)
+
+		for _, j := range storeArray {
+			x, err := j.MarshalJSON()
+
+			if err != nil {
+				logger.Warnw("Got issue while forwarding",
+					"error", err.Error())
+				continue
+			}
+			nats.Forward(h.forwardAddr, h.user, h.pass, h.topic, x)
+		}
+	}
 }
 
 func StartServer(listen, forward, user, pass, topic string) {
