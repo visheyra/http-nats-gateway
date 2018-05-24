@@ -35,7 +35,7 @@ func Forward(forwardAddr, user, pass, topic string, data []byte) {
 			"topic", topic,
 		)
 	} else {
-		logger.Infow("Successfully sent data",
+		logger.Debugw("Successfully sent data",
 			"endpoint", forwardAddr,
 			"topic", topic,
 			"size", len(data),

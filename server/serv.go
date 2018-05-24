@@ -53,7 +53,7 @@ func (h handler) forward(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 
-		logger.Infow("found array item",
+		logger.Debugw("found array item",
 			"length", len(storeArray),
 		)
 
