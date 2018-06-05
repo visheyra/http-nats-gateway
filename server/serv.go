@@ -44,29 +44,47 @@ func (h handler) forward(w http.ResponseWriter, r *http.Request) {
 	//Unpack json
 	if err := json.Unmarshal(data, &storeArray); err != nil {
 
-		logger.Errorw("Can't decode value as array or object",
+		logger.Warnw("Can't decode value as array, decoding as object",
 			"error", err.Error(),
 			"data", string(data[:]),
 		)
-		w.WriteHeader(http.StatusBadRequest)
-		return
 
-	} else {
-
-		logger.Debugw("found array item",
-			"length", len(storeArray),
-		)
-
-		for _, j := range storeArray {
-			x, err := j.MarshalJSON()
-
-			if err != nil {
-				logger.Warnw("Got issue while forwarding",
-					"error", err.Error())
-				continue
-			}
-			nats.Forward(h.forwardAddr, h.user, h.pass, h.topic, x)
+		storeObject := make(map[string]interface{})
+		err = json.Unmarshal(data, &storeObject)
+		if err != nil {
+			logger.Errorw("Can't decode data as json, skipping",
+				"data", string(data[:]),
+				"error", err.Error(),
+			)
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
+		x, err := json.Marshal(storeObject)
+		if err != nil {
+			logger.Warnw("Error while unpacking json",
+				"error", err.Error(),
+			)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		nats.Forward(h.forwardAddr, h.user, h.pass, h.topic, x)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	logger.Debugw("found array item",
+		"length", len(storeArray),
+	)
+
+	for _, j := range storeArray {
+		x, err := j.MarshalJSON()
+
+		if err != nil {
+			logger.Warnw("Got issue while forwarding",
+				"error", err.Error())
+			continue
+		}
+		nats.Forward(h.forwardAddr, h.user, h.pass, h.topic, x)
 	}
 }
 

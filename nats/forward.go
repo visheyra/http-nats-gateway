@@ -16,17 +16,32 @@ func Forward(forwardAddr, user, pass, topic string, data []byte) {
 	logger := l.Sugar()
 
 	//
-	// Connect to nats server
+	// Connect to nats server with user
 	//
-	cnx, err := nats.Connect(forwardAddr, nats.UserInfo(user, pass))
-	if err != nil {
-		logger.Errorw("Can't establish connection to nats endpoint",
-			"endpoint", forwardAddr,
-			"error", err.Error(),
+	var cnx *nats.Conn
+	if len(user) == 0 || len(pass) == 0 {
+		logger.Warnw("Empty parameter can't authenticate, fallback to unauthenticated",
+			"user", user,
+			"pass", pass,
 		)
-		return
+		cnx, err = nats.Connect(forwardAddr)
+		if err != nil {
+			logger.Errorw("Can't establish connection to nats endpoint",
+				"endpoint", forwardAddr,
+				"error", err.Error(),
+			)
+			return
+		}
+	} else {
+		cnx, err = nats.Connect(forwardAddr, nats.UserInfo(user, pass))
+		if err != nil {
+			logger.Errorw("Can't establish connection to nats endpoint",
+				"endpoint", forwardAddr,
+				"error", err.Error(),
+			)
+			return
+		}
 	}
-	defer cnx.Close()
 
 	if err := cnx.Publish(topic, data); err != nil {
 		logger.Errorw("Can't send data to endpoint",
