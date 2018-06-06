@@ -44,7 +44,7 @@ func (h handler) forward(w http.ResponseWriter, r *http.Request) {
 	//Unpack json
 	if err := json.Unmarshal(data, &storeArray); err != nil {
 
-		logger.Warnw("Can't decode value as array, decoding as object",
+		logger.Debugw("Can't decode value as array, decoding as object",
 			"error", err.Error(),
 			"data", string(data[:]),
 		)
