@@ -18,6 +18,7 @@ func Forward(forwardAddr, user, pass, topic string, data []byte) {
 	//
 	// Connect to nats server with user
 	//
+
 	var cnx *nats.Conn
 	if len(user) == 0 || len(pass) == 0 {
 		logger.Warnw("Empty parameter can't authenticate, fallback to unauthenticated",
@@ -42,6 +43,8 @@ func Forward(forwardAddr, user, pass, topic string, data []byte) {
 			return
 		}
 	}
+
+	defer cnx.Close()
 
 	if err := cnx.Publish(topic, data); err != nil {
 		logger.Errorw("Can't send data to endpoint",
